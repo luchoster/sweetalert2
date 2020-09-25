@@ -12,16 +12,25 @@ import privateMethods from '../privateMethods.js'
  * Instance method to close sweetAlert
  */
 
-function removePopupAndResetState (instance, container, isToast, didClose) {
+function removePopupAndResetState(instance, container, isToast, didClose) {
   if (isToast) {
     triggerDidCloseAndDispose(instance, didClose)
   } else {
-    restoreActiveElement().then(() => triggerDidCloseAndDispose(instance, didClose))
-    globalState.keydownTarget.removeEventListener('keydown', globalState.keydownHandler, { capture: globalState.keydownListenerCapture })
+    restoreActiveElement().then(() =>
+      triggerDidCloseAndDispose(instance, didClose)
+    )
+    globalState.keydownTarget.removeEventListener(
+      'keydown',
+      globalState.keydownHandler,
+      { capture: globalState.keydownListenerCapture }
+    )
     globalState.keydownHandlerAdded = false
   }
 
-  if (container.parentNode && !document.body.getAttribute('data-swal2-queue-step')) {
+  if (
+    container.parentNode &&
+    !document.body.getAttribute('data-swal2-queue-step')
+  ) {
     container.parentNode.removeChild(container)
   }
 
@@ -35,7 +44,7 @@ function removePopupAndResetState (instance, container, isToast, didClose) {
   removeBodyClasses()
 }
 
-function removeBodyClasses () {
+function removeBodyClasses() {
   dom.removeClass(
     [document.documentElement, document.body],
     [
@@ -48,7 +57,7 @@ function removeBodyClasses () {
   )
 }
 
-export function close (resolveValue) {
+export function close(resolveValue) {
   const popup = dom.getPopup()
 
   if (!popup) {
@@ -76,40 +85,51 @@ export function close (resolveValue) {
   swalPromiseResolve(resolveValue)
 }
 
-const prepareResolveValue = (resolveValue) => {
+const prepareResolveValue = resolveValue => {
   // When user calls Swal.close()
   if (typeof resolveValue === 'undefined') {
     return {
       isConfirmed: false,
       isDenied: false,
-      isDismissed: true,
+      isDismissed: true
     }
   }
 
-  return Object.assign({
-    isConfirmed: false,
-    isDenied: false,
-    isDismissed: false,
-  }, resolveValue)
+  return Object.assign(
+    {
+      isConfirmed: false,
+      isDenied: false,
+      isDismissed: false
+    },
+    resolveValue
+  )
 }
 
 const handlePopupAnimation = (instance, popup, innerParams) => {
   const container = dom.getContainer()
   // If animation is supported, animate
-  const animationIsSupported = dom.animationEndEvent && dom.hasCssAnimation(popup)
+  const animationIsSupported =
+    dom.animationEndEvent && dom.hasCssAnimation(popup)
 
   const {
-    onClose, onAfterClose, // @deprecated
-    willClose, didClose
+    onClose,
+    onAfterClose, // @deprecated
+    willClose,
+    didClose
   } = innerParams
 
   runDidClose(popup, willClose, onClose)
 
   if (animationIsSupported) {
-    animatePopup(instance, popup, container, didClose ?? onAfterClose)
+    animatePopup(instance, popup, container, didClose && onAfterClose)
   } else {
     // Otherwise, remove immediately
-    removePopupAndResetState(instance, container, dom.isToast(), didClose ?? onAfterClose)
+    removePopupAndResetState(
+      instance,
+      container,
+      dom.isToast(),
+      didClose && onAfterClose
+    )
   }
 }
 
@@ -122,8 +142,14 @@ const runDidClose = (popup, willClose, onClose) => {
 }
 
 const animatePopup = (instance, popup, container, didClose) => {
-  globalState.swalCloseEventFinishedCallback = removePopupAndResetState.bind(null, instance, container, dom.isToast(), didClose)
-  popup.addEventListener(dom.animationEndEvent, function (e) {
+  globalState.swalCloseEventFinishedCallback = removePopupAndResetState.bind(
+    null,
+    instance,
+    container,
+    dom.isToast(),
+    didClose
+  )
+  popup.addEventListener(dom.animationEndEvent, function(e) {
     if (e.target === popup) {
       globalState.swalCloseEventFinishedCallback()
       delete globalState.swalCloseEventFinishedCallback
@@ -140,8 +166,4 @@ const triggerDidCloseAndDispose = (instance, didClose) => {
   })
 }
 
-export {
-  close as closePopup,
-  close as closeModal,
-  close as closeToast
-}
+export { close as closePopup, close as closeModal, close as closeToast }
